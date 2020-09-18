@@ -1,3 +1,4 @@
+
 /**
  * author Rimane
  * license MIT
@@ -9,11 +10,7 @@
  */
 function intersectAction(elements, callback, observerOptions) {
 	'use strict';
-	
 
-	// 省略用
-	const forEach = Array.prototype.forEach;
-	const toString = Object.prototype.toString;
 
 	// 型厳密チェック用
 	function typeOf(obj) {
@@ -29,11 +26,7 @@ function intersectAction(elements, callback, observerOptions) {
 
 	// option が指定されていなければ初期値を設定
 	if (observerOptions === undefined || observerOptions === null) {
-		observerOptions = {
-			root: null,
-			rootMargin: '0px',
-			threshold: 0
-		}
+		observerOptions = defaultObserverOptions;
 	}
 
 	// observer をインスタンス化
@@ -46,7 +39,7 @@ function intersectAction(elements, callback, observerOptions) {
 		forEach.call(doms, function (dom) {
 			observer.observe(dom);
 		})
-	} else if(elementsType === 'nodelist' || elementsType === 'htmlcollection') {
+	} else if (elementsType === 'nodelist' || elementsType === 'htmlcollection') {
 		// nodelist かhtmlcollection ならforEach で回して全部監視
 		forEach.call(elements, function (element) {
 			observer.observe(element);
@@ -56,7 +49,7 @@ function intersectAction(elements, callback, observerOptions) {
 		observer.observe(elements);
 	}
 	console.log(elementsType);
-	
+
 
 	/**
 	 * 交差したときに呼び出す関数
@@ -78,3 +71,61 @@ function intersectAction(elements, callback, observerOptions) {
 	}
 
 };
+
+(function ($) {
+	// jQuery が読み込まれていなければ何もしないで return
+	if (window.jQuery === undefined) {
+		return;
+	}
+
+	// メソッドを定義
+	$.fn.intersectAction = function (callback, observerOptions) {
+		const $this = this;
+		if (observerOptions === undefined) {
+			observerOptions = defaultObserverOptions;
+		}
+
+		// observer をインスタンス化
+		const observer = new IntersectionObserver(doIntersect, observerOptions);
+
+		// DOM に変換して監視
+		const doms = this.get();
+		forEach.call(doms, function (dom) {
+			observer.observe(dom);
+		})
+
+		/**
+		 * 交差したときに呼び出す関数
+		 * @param entries
+		 */
+		function doIntersect(entries) {
+
+			forEach.call(entries, function (entry) {
+				callback($(entry.target), entry.isIntersecting, observer);
+
+				console.log($(entry.target));
+				
+				return $(entry.target);
+			})
+		}
+
+	}
+
+	$.fn.test = function(callback){
+		callback('test');
+
+		return this
+	}
+})(jQuery)
+
+
+// デフォルトのオプション
+const defaultObserverOptions = {
+	root: null,
+	rootMargin: '0px',
+	threshold: 0
+};
+
+// 省略用
+const forEach = Array.prototype.forEach;
+const toString = Object.prototype.toString;
